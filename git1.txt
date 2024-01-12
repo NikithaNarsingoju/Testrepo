@@ -1,0 +1,160 @@
+webapi controller
+----------------
+
+
+// Import necessary namespaces
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using JobprtalsWebAPI.Models;
+
+// Define the controller within the JobprtalsWebAPI.Controllers namespace
+namespace JobprtalsWebAPI.Controllers
+{
+    // Create a controller class named JobCategoryTablesController that inherits from ControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class JobCategoryTablesController : ControllerBase
+    {
+        // Define a private readonly field to store an instance of the JobsPortalDbContext
+        private readonly JobsPortalDbContext _context;
+
+        // Create a constructor that accepts an instance of JobsPortalDbContext through dependency injection
+        public JobCategoryTablesController(JobsPortalDbContext context)
+        {
+            _context = context;
+        }
+
+        // Define the GET action for retrieving all JobCategoryTables
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<JobCategoryTable>>> GetJobCategoryTables()
+        {
+            // Check if the JobCategoryTables entity set is null, return NotFound if true
+            if (_context.JobCategoryTables == null)
+            {
+                return NotFound();
+            }
+
+            // Return a list of all JobCategoryTables asynchronously
+            return await _context.JobCategoryTables.ToListAsync();
+        }
+
+        // Define the GET action for retrieving a specific JobCategoryTable by ID
+        [HttpGet("{id}")]
+        public async Task<ActionResult<JobCategoryTable>> GetJobCategoryTable(int id)
+        {
+            // Check if the JobCategoryTables entity set is null, return NotFound if true
+            if (_context.JobCategoryTables == null)
+            {
+                return NotFound();
+            }
+
+            // Find the JobCategoryTable by ID
+            var jobCategoryTable = await _context.JobCategoryTables.FindAsync(id);
+
+            // Return NotFound if the JobCategoryTable is not found
+            if (jobCategoryTable == null)
+            {
+                return NotFound();
+            }
+
+            // Return the found JobCategoryTable
+            return jobCategoryTable;
+        }
+
+        // Define the PUT action for updating a specific JobCategoryTable by ID
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutJobCategoryTable(int id, JobCategoryTable jobCategoryTable)
+        {
+            // Check if the provided ID does not match the JobCategoryTable's ID, return BadRequest if true
+            if (id != jobCategoryTable.JobCategoryId)
+            {
+                return BadRequest();
+            }
+
+            // Mark the JobCategoryTable as modified in the context
+            _context.Entry(jobCategoryTable).State = EntityState.Modified;
+
+            try
+            {
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Check if the JobCategoryTable does not exist, return NotFound if true
+                if (!JobCategoryTableExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            // Return a response with no content
+            return NoContent();
+        }
+
+        // Define the POST action for creating a new JobCategoryTable
+        [HttpPost]
+        public async Task<ActionResult<JobCategoryTable>> PostJobCategoryTable(JobCategoryTable jobCategoryTable)
+        {
+            // Check if the JobCategoryTables entity set is null, return Problem with an error message if true
+            if (_context.JobCategoryTables == null)
+            {
+                return Problem("Entity set 'JobsPortalDbContext.JobCategoryTables' is null.");
+            }
+
+            // Add the provided JobCategoryTable to the context
+            _context.JobCategoryTables.Add(jobCategoryTable);
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            // Return a response with the created JobCategoryTable
+            return CreatedAtAction("GetJobCategoryTable", new { id = jobCategoryTable.JobCategoryId }, jobCategoryTable);
+        }
+
+        // Define the DELETE action for deleting a specific JobCategoryTable by ID
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteJobCategoryTable(int id)
+        {
+            // Check if the JobCategoryTables entity set is null, return NotFound if true
+            if (_context.JobCategoryTables == null)
+            {
+                return NotFound();
+            }
+
+            // Find the JobCategoryTable by ID
+            var jobCategoryTable = await _context.JobCategoryTables.FindAsync(id);
+
+            // Return NotFound if the JobCategoryTable is not found
+            if (jobCategoryTable == null)
+            {
+                return NotFound();
+            }
+
+            // Remove the JobCategoryTable from the context
+            _context.JobCategoryTables.Remove(jobCategoryTable);
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            // Return a response with no content
+            return NoContent();
+        }
+
+        // Define a private helper method to check if a JobCategoryTable with the provided ID exists
+        private bool JobCategoryTableExists(int id)
+        {
+            // Check if any JobCategoryTable with the provided ID exists in the context
+            return (_context.JobCategoryTables?.Any(e => e.JobCategoryId == id)).GetValueOrDefault();
+        }
+    }
+}
